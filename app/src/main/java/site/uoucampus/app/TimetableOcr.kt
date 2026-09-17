@@ -136,11 +136,20 @@ object TimetableOcr {
     val runs = mutableListOf<Run>()
     var start = -1
     var colour: IntArray? = null
+    /* 색이 바뀐 자리와 그 색, 그 색이 몇 줄째 이어지는지. */
+    var turnY = -1
+    var turnColour: IntArray? = null
+    var turnRows = 0
     fun close(end: Int) {
       if (start >= 0 && end - start >= minHeight) runs += Run(start, end)
       start = -1
       colour = null
+      turnY = -1
     }
+    /* 색이 바뀌어도 이만큼 이어져야 다른 수업으로 본다. 과목명이 칸 너비를 거의 채우면 흰 획이 지나는
+       한두 줄의 가운뎃값이 확 밝아져, 그 줄을 경계로 읽고 9시 수업을 10시로 들였다. 글자 획은 몇 줄뿐이고
+       맞붙은 수업은 적어도 반 교시라 그 사이에 문턱을 둔다. */
+    val hold = max(3, minHeight / 4)
 
     val r = IntArray(looked + 1)
     val g = IntArray(looked + 1)
@@ -162,7 +171,8 @@ object TimetableOcr {
         x += 2
       }
       if (n < enough) {
-        close(y)
+        /* 틈 바로 앞에서 색이 바뀌던 줄은 칸 가장자리다. 칸에 넣지 않는다. */
+        close(if (turnY >= 0) turnY else y)
         continue
       }
       val here = intArrayOf(median(r, n), median(g, n), median(b, n))
@@ -171,15 +181,27 @@ object TimetableOcr {
         colour = here
         continue
       }
-      /* 색이 확 바뀌면 다른 수업이 맞붙은 것이다. 사이에 흰 틈이 없을 수 있다. */
+      /* 색이 확 바뀌어 이어지면 다른 수업이 맞붙은 것이다. 사이에 흰 틈이 없을 수 있다. */
       val current = colour
-      if (current != null && differs(current, here)) {
-        close(y)
-        start = y
-        colour = here
+      if (current == null || !differs(current, here)) {
+        turnY = -1
+        continue
+      }
+      val pending = turnColour
+      if (turnY >= 0 && pending != null && !differs(pending, here)) turnRows++
+      else {
+        turnY = y
+        turnColour = here
+        turnRows = 1
+      }
+      if (turnRows >= hold) {
+        val (at, next) = turnY to turnColour
+        close(at)
+        start = at
+        colour = next
       }
     }
-    close(px.height)
+    close(if (turnY >= 0) turnY else px.height)
     return runs
   }
 
