@@ -1,5 +1,6 @@
 package site.uoucampus.app
 
+import android.os.SystemClock
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,7 +48,8 @@ class AppState(val graph: CampusGraph, val locator: Locator, private val store: 
   val progress by derivedStateOf {
     val r = route
     val at = locator.here
-    if (r != null && at != null) Progress.track(r, at) else null
+    /* 캠퍼스 밖이면 '경로에서 수만 km' 가 뜬다. 따라갈 게 없다. */
+    if (r != null && at != null && !offCampus) Progress.track(r, at) else null
   }
 
   /** 전체 화면 장소 목록을 띄운 칸. */
@@ -70,9 +72,38 @@ class AppState(val graph: CampusGraph, val locator: Locator, private val store: 
       if (claimFirstFix) {
         claimFirstFix = false
         /* 건물만 골라 붙이면 열에 일곱은 시작하자마자 '경로에서 벗어남' 이다. 길목까지 포함한다. */
-        graph.nearest(at)?.let { fromId = it.first.id }
+        graph.nearest(at)?.takeIf { it.second <= CAMPUS_REACH }?.let { fromId = it.first.id }
       }
     }
+    locator.onFix = { rerouteIfLost() }
+  }
+
+  private var lostSince: Long? = null
+
+  /** 안내 중 한참 벗어나 있으면 지금 선 자리에서 가장 가까운 곳을 출발지로 다시 세운다. */
+  private fun rerouteIfLost() {
+    val here = locator.here
+    if (!guiding || !lost || locator.status != Locator.Status.READY || here == null) {
+      lostSince = null
+      return
+    }
+    val now = SystemClock.elapsedRealtime()
+    val since = lostSince ?: now.also { lostSince = it }
+    if (now - since < REROUTE_AFTER_MS) return
+    /* 도착지 코앞이면 출발지와 도착지가 같아져 안내가 사라진다. */
+    val near = graph.nearest(here)?.first?.takeIf { it.id != toId } ?: return
+    lostSince = null
+    fromId = near.id
+  }
+
+  /** 집에서 켜면 캠퍼스 끝 길목이 '현위치 근처' 로 들어앉고 지도는 집으로 날아간다. */
+  val offCampus get() = locator.here?.let { (graph.nearest(it)?.second ?: Double.POSITIVE_INFINITY) > CAMPUS_REACH } ?: false
+
+  companion object {
+    /** 가장 가까운 곳이 이보다 멀면 캠퍼스 밖이다(m). 정문 건너 정류장쯤까지는 봐준다. */
+    const val CAMPUS_REACH = 300.0
+    /** 벗어난 채로 이만큼 지나면 선 자리에서 길을 다시 찾는다. GPS 가 한 번 튄 것으로는 안 바꾼다. */
+    const val REROUTE_AFTER_MS = 5_000L
   }
 
   // ── 파생 값 ──────────────────────────────────────────────────────────────
