@@ -47,7 +47,8 @@ class AppState(val graph: CampusGraph, val locator: Locator, private val store: 
   val progress by derivedStateOf {
     val r = route
     val at = locator.here
-    if (r != null && at != null) Progress.track(r, at) else null
+    /* 캠퍼스 밖이면 '경로에서 수만 km' 가 뜬다. 따라갈 게 없다. */
+    if (r != null && at != null && !offCampus) Progress.track(r, at) else null
   }
 
   /** 전체 화면 장소 목록을 띄운 칸. */
@@ -70,9 +71,17 @@ class AppState(val graph: CampusGraph, val locator: Locator, private val store: 
       if (claimFirstFix) {
         claimFirstFix = false
         /* 건물만 골라 붙이면 열에 일곱은 시작하자마자 '경로에서 벗어남' 이다. 길목까지 포함한다. */
-        graph.nearest(at)?.let { fromId = it.first.id }
+        graph.nearest(at)?.takeIf { it.second <= CAMPUS_REACH }?.let { fromId = it.first.id }
       }
     }
+  }
+
+  /** 집에서 켜면 캠퍼스 끝 길목이 '현위치 근처' 로 들어앉고 지도는 집으로 날아간다. */
+  val offCampus get() = locator.here?.let { (graph.nearest(it)?.second ?: Double.POSITIVE_INFINITY) > CAMPUS_REACH } ?: false
+
+  companion object {
+    /** 가장 가까운 곳이 이보다 멀면 캠퍼스 밖이다(m). 정문 건너 정류장쯤까지는 봐준다. */
+    const val CAMPUS_REACH = 300.0
   }
 
   // ── 파생 값 ──────────────────────────────────────────────────────────────

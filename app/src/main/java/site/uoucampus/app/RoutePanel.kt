@@ -133,7 +133,7 @@ private fun GeoRow(state: AppState) {
       fill = if (locator.active) UColor.hereSoft else Color.Transparent,
       stroke = if (locator.active) UColor.here else UColor.outline, h = 11.dp,
     ) { if (locator.active) locator.stop() else state.useHereAsOrigin() }
-    val message = when (locator.status) {
+    val message = if (state.offCampus) "캠퍼스 밖이라 출발지로 못 씁니다" else when (locator.status) {
       Locator.Status.LOCATING -> "현위치를 찾는 중입니다"
       Locator.Status.COARSE -> "아직 어림한 자리입니다 — 다듬는 중"
       Locator.Status.DENIED -> "위치 권한이 막혀 있습니다"
@@ -230,7 +230,10 @@ private fun ProgressBox(state: AppState) {
     verticalArrangement = Arrangement.spacedBy(6.dp),
   ) {
     if (progress == null) {
-      Text("위치를 기다리는 중입니다. 잡히면 경로 위 어디쯤인지 표시합니다.", color = UColor.warn, style = Type.caption)
+      Text(
+        if (state.offCampus) "캠퍼스 밖에 있습니다. 들어서면 경로 위 어디쯤인지 표시합니다." else "위치를 기다리는 중입니다. 잡히면 경로 위 어디쯤인지 표시합니다.",
+        color = UColor.warn, style = Type.caption,
+      )
       return@Column
     }
     Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

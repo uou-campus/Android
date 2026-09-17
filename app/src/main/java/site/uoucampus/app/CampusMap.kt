@@ -127,7 +127,7 @@ private class MapHolder(private val state: AppState) {
   private fun layoutChanged(map: MapView) {
     val here = state.locator.here
     /* 폰을 돌렸다. 걷는 중이면 발밑으로, 아니면 보던 것을 다시 맞춘다. */
-    if (following && here != null) map.controller.setCenter(GeoPoint(here.lat, here.lng))
+    if (following && here != null && !state.offCampus) map.controller.setCenter(GeoPoint(here.lat, here.lng))
     else fitRequest?.let { fit(map, it.first, it.second) }
   }
 
@@ -167,6 +167,8 @@ private class MapHolder(private val state: AppState) {
   }
 
   private fun follow(map: MapView, here: LatLng) {
+    /* 캠퍼스 밖의 점을 쫓아가면 캠퍼스가 화면에서 사라진다. */
+    if (state.offCampus) return
     val point = GeoPoint(here.lat, here.lng)
     if (following && needsGuideZoom) {
       needsGuideZoom = false

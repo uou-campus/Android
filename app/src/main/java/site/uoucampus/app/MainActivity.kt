@@ -312,7 +312,7 @@ private fun ColumnScope.Guide(state: AppState, route: Route) {
   val next = steps.getOrNull(index + 1)
 
   /* 권한이 막혔는데 '기다리는 중' 이라고 해 두면 사람은 계속 기다린다. */
-  val noFix = when (state.locator.status) {
+  val noFix = if (state.offCampus) "캠퍼스 밖에 있습니다" to "캠퍼스에 들어서면 여기서부터 안내합니다." else when (state.locator.status) {
     Locator.Status.DENIED -> "위치 권한이 막혀 있습니다" to "설정 → 앱 → 캠퍼스 길찾기 → 권한에서 위치를 허용하면 따라갑니다."
     Locator.Status.UNSUPPORTED -> "이 기기는 위치를 못 씁니다" to "경로와 안내 목록은 그대로 볼 수 있습니다."
     Locator.Status.FAILED -> "현위치를 못 찾았습니다" to "건물 안이면 창가나 밖으로 나가면 잡힙니다."
