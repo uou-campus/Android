@@ -105,11 +105,12 @@ private class MapHolder(private val state: AppState) {
       }
     }
 
-    /* 출발·도착이 바뀌면 경로가 다 보이게. 기준만 바꿀 때는 화면을 튀기지 않는다. */
+    /* 출발·도착이 바뀌면 경로가 다 보이게. 기준만 바꿀 때는 화면을 튀기지 않는다.
+       안내 중 길을 다시 찾았을 때는 발밑을 따라가던 화면을 그대로 둔다. */
     val legNow = route?.let { "${it.from.id}→${it.to.id}" } ?: ""
     if (legNow != legKey) {
       legKey = legNow
-      if (route != null && route.points.size >= 2) fit(map, route.points)
+      if (!guiding && route != null && route.points.size >= 2) fit(map, route.points)
     }
 
     val followChanged = guiding != following

@@ -242,7 +242,10 @@ private fun ProgressBox(state: AppState) {
       Text("경로에서 ${formatMeters(progress.offRoute)}", Modifier.padding(bottom = 3.dp), color = UColor.textTertiary, style = Type.caption)
     }
     if (state.lost) {
-      Text("경로에서 많이 벗어났습니다. 지도를 보고 되돌아가거나 출발지를 다시 잡으세요.", color = UColor.warn, style = Type.caption)
+      Text(
+        if (state.guiding) "경로에서 벗어났습니다. 잠시 뒤 여기서부터 길을 다시 찾습니다." else "경로에서 많이 벗어났습니다. 지도를 보고 되돌아가거나 출발지를 다시 잡으세요.",
+        color = UColor.warn, style = Type.caption,
+      )
     } else {
       state.steps.getOrNull(state.stepIndex)?.let { Text(it.text, color = UColor.textPrimary, style = Type.bodyStrong) }
     }

@@ -338,7 +338,7 @@ private fun ColumnScope.Guide(state: AppState, route: Route) {
     Pill(if (arrived) "끝내기" else "안내 종료", UColor.textSecondary, fill = UColor.surface, h = 12.dp, v = 6.dp) { state.stopGuide() }
   }
   if (state.lost && !arrived && progress != null) {
-    Text("경로에서 ${formatMeters(progress.offRoute)} 벗어났습니다.", color = UColor.warn, style = Type.bodyStrong)
+    Text("경로에서 ${formatMeters(progress.offRoute)} 벗어났습니다 — 곧 다시 찾습니다", color = UColor.warn, style = Type.bodyStrong)
   } else if (progress != null && !arrived) {
     (next ?: steps.getOrNull(index))?.let {
       Text(it.text, color = UColor.textSecondary, style = Type.caption, maxLines = 1, overflow = TextOverflow.Ellipsis)

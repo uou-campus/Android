@@ -35,6 +35,8 @@ class Locator(private val context: Context) : LocationListener {
 
   /** 쓸 만한 첫 좌표가 잡혔을 때 한 번. */
   var onFirstFix: ((LatLng) -> Unit)? = null
+  /** 좌표가 올 때마다. 안내 중 경로를 벗어났는지 여기서 본다. */
+  var onFix: (() -> Unit)? = null
   /** 권한을 묻는 손잡이. Activity 가 채운다. */
   var askPermission: (() -> Unit)? = null
 
@@ -114,6 +116,7 @@ class Locator(private val context: Context) : LocationListener {
       pending = false
       onFirstFix?.invoke(at)
     }
+    onFix?.invoke()
   }
 
   /* API 29 이하는 기본 구현이 없다. 비워 두지 않으면 호출될 때 죽는다. */
