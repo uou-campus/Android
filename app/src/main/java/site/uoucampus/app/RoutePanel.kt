@@ -356,7 +356,10 @@ private fun DirectionsList(route: Route, steps: List<DirectionStep>) {
       Box(Modifier.width(18.dp), contentAlignment = Alignment.Center) {
         Box(Modifier.size(12.dp).border(3.dp, UColor.gray900, CircleShape))
       }
-      Text(Directions.arrival(route.to), color = UColor.textPrimary, style = Type.body)
+      Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(Directions.arrival(route.to), color = UColor.textPrimary, style = Type.body)
+        route.to.access?.let { Text(it, color = UColor.textTertiary, style = Type.caption) }
+      }
     }
   }
 }

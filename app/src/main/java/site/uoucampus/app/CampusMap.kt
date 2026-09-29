@@ -343,6 +343,7 @@ private class CampusOverlay(private val state: AppState, private val density: Fl
       from -> Triple(0xFF16A152, 0xFFFFFFFF, 0xFFFFFFFF)
       to -> Triple(0xFF111111, 0xFFFFFFFF, 0xFFFFFFFF)
       node.kind == NodeKind.GATE -> Triple(0xFF374151, 0xFFFFFFFF, 0xFFFFFFFF)
+      node.medical -> Triple(0xFFB91C1C, 0xFFFFFFFF, 0xFFFFFFFF)
       else -> Triple(0xFFFFFFFF, 0xFF9CA3AF, 0xFF6B7280)
     }
     fill.color = fillColor.toInt()
@@ -353,8 +354,9 @@ private class CampusOverlay(private val state: AppState, private val density: Fl
     stroke.pathEffect = if (node.precision == "approx" && !endpoint) approxEffect else null
     canvas.drawCircle(x, y, r, stroke)
     ink.color = textColor.toInt()
-    ink.textSize = 10 * density
-    val label = if (from) "출발" else if (to) "도착" else node.no?.toString() ?: ""
+    val cross = !endpoint && node.no == null && node.medical
+    ink.textSize = (if (cross) 14 else 10) * density
+    val label = if (from) "출발" else if (to) "도착" else if (cross) "+" else node.no?.toString() ?: ""
     canvas.drawText(label, x, y - (ink.descent() + ink.ascent()) / 2, ink)
   }
 

@@ -31,6 +31,10 @@ data class CampusNode(
   val lng: Double,
   /** `approx` 면 아직 걸어 보고 확인하지 않은 좌표. */
   val precision: String,
+  /** 의무실. 지도에 빨간 점으로 따로 찍는다. */
+  val medical: Boolean = false,
+  /** 건물 안에서 찾아 들어가는 법. 도착 안내 밑에 붙인다. */
+  val access: String? = null,
 ) {
   val at get() = LatLng(lat, lng)
 }
@@ -142,6 +146,8 @@ class CampusGraph(nodeList: List<CampusNode>, edgeList: List<CampusEdge>) {
             lat = o.getDouble("lat"),
             lng = o.getDouble("lng"),
             precision = o.getString("precision"),
+            medical = o.optBoolean("medical"),
+            access = if (o.has("access")) o.getString("access") else null,
           )
         }
       }
